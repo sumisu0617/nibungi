@@ -11,6 +11,11 @@ struct ST_NUM* st_add(int num);
 struct ST_NUM* st_insert(int i_inputnum, struct ST_NUM* st_insertnum);
 struct ST_NUM* st_search(int i_searchnum, struct ST_NUM* st_searchtree, int* i_size);
 void vd_count(struct ST_NUM* st_sortnum, int* size);
+void vd_traversal(struct ST_NUM* st_sortnum);
+void vd_traversal_insert(struct ST_NUM* st_sortnum, struct ST_NUM* st_new, int* i_size);
+struct ST_NUM* st_traversal_insert(int i_inputnum, struct ST_NUM* st_insertnum);
+struct ST_NUM* st_search(int i_searchnum, struct ST_NUM* st_searchtree, int* i_size);
+struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new, struct ST_NUM* st_sortnum);
 
 int main(void){
     struct ST_NUM* st_num = NULL;
@@ -24,7 +29,7 @@ int main(void){
     }
     else{
         printf("値の入力が完了しました\n");
-        vd_sort(st_num);
+        vd_traversal(st_num);
         printf("検索したい値を入力してください\n");
         scanf("%d\n", &i_inputnum);
         st_resultnum = st_search(i_inputnum, st_num, &i_size);
@@ -45,12 +50,11 @@ int main(void){
 /* 二分木に値を入力 */
 struct ST_NUM* st_input(struct ST_NUM* st_num){
     int i_scan;
-    int i_count = 0;
     while(1){
+        printf("数値を入力してください(終了する場合‐の値を入力)\n");
+        scanf("%d\n", &i_scan);
         /* 最初の値の追加 */
         if(st_num == NULL){
-            printf("数値を入力してください(終了する場合‐の値を入力)\n");
-            scanf("%d\n", &i_scan);
             if(i_scan >= 0){
                 st_num = st_add(i_scan);
             }
@@ -59,11 +63,8 @@ struct ST_NUM* st_input(struct ST_NUM* st_num){
             }
         }
         else{
-            printf("数値を入力してください(終了する場合‐の値を入力)\n");
-            scanf("%d\n", &i_scan);
             if(i_scan >= 0){
                 st_num = st_insert(i_scan, st_num);
-                vd_count(st_num, i_count);
             }
             else{
                 break;
@@ -76,13 +77,13 @@ struct ST_NUM* st_input(struct ST_NUM* st_num){
 
 /* 新しく枝を追加する */
 struct ST_NUM* st_add(int i_nums){
-    struct ST_NUM* st_add;
-    st_add = (struct ST_NUM*)malloc(sizeof(struct ST_NUM));
+    struct ST_NUM* st_adds;
+    st_adds = (struct ST_NUM*)malloc(sizeof(struct ST_NUM));
     
-    st_add->i_num = i_nums;
-    st_add->st_left = NULL;
-    st_add->st_right = NULL;
-    return st_add;
+    st_adds->i_num = i_nums;
+    st_adds->st_left = NULL;
+    st_adds->st_right = NULL;
+    return st_adds;
 }
 
 /* 値の場所を検索して値を入れる */
@@ -126,9 +127,52 @@ struct ST_NUM* st_search(int i_searchnum, struct ST_NUM* st_searchtree, int* i_s
 
 void vd_count(struct ST_NUM* st_sortnum, int* size){
     if(st_sortnum != NULL){
-        vd_sort(st_sortnum->st_left);
+        vd_count(st_sortnum->st_left, size);
         *size = *size + 1;
-        vd_sort(st_sortnum->st_right);
+        vd_count(st_sortnum->st_right, size);
     }
+    return;
 }
 
+void vd_traversal(struct ST_NUM* st_sortnum){
+    struct ST_NUM* st_new;
+    int i_size = 0;
+    int i_insert_size = 0;
+    vd_count(st_sortnum, &i_size);
+    st_new = (struct ST_NUM*)malloc(i_size * sizeof(struct ST_NUM));
+    vd_traversal_insert(st_sortnum, st_new, &i_insert_size);
+    st_sortnum = st_traversal_input(i_size, st_new, st_sortnum);
+    st_new = NULL;
+    return;
+}
+
+void vd_traversal_insert(struct ST_NUM* st_sortnum, struct ST_NUM* st_new, int* i_size){
+    if(st_sortnum != NULL){
+        vd_traversal_insert(st_sortnum->st_left, st_new, i_size);
+        st_new[*i_size] = *st_sortnum;
+        *i_size = *i_size + 1;
+        vd_traversal_insert(st_sortnum->st_right, st_new, i_size);
+    }
+    return;
+}
+
+struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new, struct ST_NUM* st_sortnum){
+    int i;
+    int j;
+    int group;
+    free(st_sortnum);
+    st_sortnum = NULL;
+    for (group = i_size / 2; group > 0; group /= 2) {
+        for (i = group; i < i_size; i++) {
+            for (j = i; j >= group; j -= group) {
+                if(st_sortnum == NULL){
+                    st_sortnum = st_add(st_new[j].i_num);
+                }
+                else{
+                    st_sortnum = st_insert(st_new[j].i_num, st_sortnum);
+                }
+            }
+        }
+    }
+    return st_sortnum;
+}
