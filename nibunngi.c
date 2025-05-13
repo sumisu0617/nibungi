@@ -15,7 +15,9 @@ void vd_traversal(struct ST_NUM* st_sortnum);
 void vd_traversal_insert(struct ST_NUM* st_sortnum, struct ST_NUM* st_new, int* i_size);
 struct ST_NUM* st_traversal_insert(int i_inputnum, struct ST_NUM* st_insertnum);
 struct ST_NUM* st_search(int i_searchnum, struct ST_NUM* st_searchtree, int* i_size);
-struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new, struct ST_NUM* st_sortnum);
+struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new);
+void vd_traversal_alg(int i_l, int i_r, struct ST_NUM* st_new, struct ST_NUM* st_newtree);
+
 
 int main(void){
     struct ST_NUM* st_num = NULL;
@@ -107,6 +109,7 @@ struct ST_NUM* st_insert(int i_inputnum, struct ST_NUM* st_insertnum){
     return st_insertnum;
 }
 
+    /*  */
 struct ST_NUM* st_search(int i_searchnum, struct ST_NUM* st_searchtree, int* i_size){
     struct ST_NUM* st_resultnum;
     *i_size = *i_size + 1;
@@ -118,13 +121,15 @@ struct ST_NUM* st_search(int i_searchnum, struct ST_NUM* st_searchtree, int* i_s
     else if(i_searchnum < st_searchtree->i_num){
         st_resultnum = st_search(i_searchnum, st_searchtree->st_left, i_size);
     }
+    /* 値が大きいため右を探す */
     else{
         st_resultnum = st_search(i_searchnum, st_searchtree->st_right, i_size);
     }
-    /* 値が大きいため右を探す */
+    
     return st_resultnum;
 }
 
+/* ノードの数を数える */
 void vd_count(struct ST_NUM* st_sortnum, int* size){
     if(st_sortnum != NULL){
         vd_count(st_sortnum->st_left, size);
@@ -134,6 +139,7 @@ void vd_count(struct ST_NUM* st_sortnum, int* size){
     return;
 }
 
+/* 二分木を組みなおす */
 void vd_traversal(struct ST_NUM* st_sortnum){
     struct ST_NUM* st_new;
     int i_size = 0;
@@ -141,11 +147,14 @@ void vd_traversal(struct ST_NUM* st_sortnum){
     vd_count(st_sortnum, &i_size);
     st_new = (struct ST_NUM*)malloc(i_size * sizeof(struct ST_NUM));
     vd_traversal_insert(st_sortnum, st_new, &i_insert_size);
-    st_sortnum = st_traversal_input(i_size, st_new, st_sortnum);
+    free(st_sortnum);
+    st_sortnum = NULL;
+    st_sortnum = st_traversal_input(i_size, st_new);
     st_new = NULL;
     return;
 }
 
+/* 二分木のすべての数を配列に代入する */
 void vd_traversal_insert(struct ST_NUM* st_sortnum, struct ST_NUM* st_new, int* i_size){
     if(st_sortnum != NULL){
         vd_traversal_insert(st_sortnum->st_left, st_new, i_size);
@@ -156,23 +165,38 @@ void vd_traversal_insert(struct ST_NUM* st_sortnum, struct ST_NUM* st_new, int* 
     return;
 }
 
-struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new, struct ST_NUM* st_sortnum){
-    int i;
-    int j;
-    int group;
-    free(st_sortnum);
-    st_sortnum = NULL;
-    for (group = i_size / 2; group > 0; group /= 2) {
-        for (i = group; i < i_size; i++) {
-            for (j = i; j >= group; j -= group) {
-                if(st_sortnum == NULL){
-                    st_sortnum = st_add(st_new[j].i_num);
-                }
-                else{
-                    st_sortnum = st_insert(st_new[j].i_num, st_sortnum);
-                }
-            }
-        }
+/* 二分木の中央から順番に値を入れていく */
+struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new){
+    int i_l = 0;
+    int i_r = i_size - 1;
+    int i_mid = i_size / 2;
+    struct ST_NUM* st_newtree = NULL;
+    /* 最初の値代入 */
+    printf("%d\n",st_new[i_mid].i_num);
+    st_newtree = st_add(st_new[i_mid].i_num);
+    
+    vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
+    vd_traversal_alg(i_mid + 1, i_r, st_new, st_newtree);
+    return st_newtree;
+}
+
+void vd_traversal_alg(int i_l, int i_r, struct ST_NUM* st_new, struct ST_NUM* st_newtree){
+    struct ST_NUM* st_tree;
+    int i_mid = i_l + ((i_r - i_l)/ 2) + 1;
+    if((i_r - i_l) == 0){
+        /* 最後の階層の値挿入 */
+        printf("%d\n",st_new[i_l].i_num);
+        st_tree = st_insert(st_new[i_l].i_num, st_newtree);
     }
-    return st_sortnum;
+    else if(((i_r - i_l)/ 2) != 0){
+        printf("%d\n",st_new[i_mid].i_num);
+        st_tree = st_insert(st_new[i_mid].i_num, st_newtree);
+        vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
+        vd_traversal_alg(i_mid + 1, i_r, st_new, st_newtree);
+    }else{
+        printf("%d\n",st_new[i_mid].i_num);
+        st_tree = st_insert(st_new[i_mid].i_num, st_newtree);
+        vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
+    }
+    return;
 }
