@@ -174,21 +174,33 @@ struct ST_NUM* st_traversal_input(int i_size, struct ST_NUM* st_new){
     /* 最初の値代入 */
     printf("%d\n",st_new[i_mid].i_num);
     st_newtree = st_add(st_new[i_mid].i_num);
+    if((i_size / 2) >= 1 && i_size != 2){
+        vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
+        vd_traversal_alg(i_mid + 1, i_r, st_new, st_newtree);
+    }
+    else if(i_size == 2){
+        vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
+    }
     
-    vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
-    vd_traversal_alg(i_mid + 1, i_r, st_new, st_newtree);
     return st_newtree;
 }
 
 void vd_traversal_alg(int i_l, int i_r, struct ST_NUM* st_new, struct ST_NUM* st_newtree){
     struct ST_NUM* st_tree;
-    int i_mid = i_l + ((i_r - i_l)/ 2) + 1;
+    int i_mid;
+    if((i_r - i_l) % 2 == 1 ){
+        i_mid = i_l + ((i_r - i_l)/ 2) + 1;
+    }
+    else{
+        i_mid = i_l + ((i_r - i_l)/ 2);
+    }
+
     if((i_r - i_l) == 0){
         /* 最後の階層の値挿入 */
         printf("%d\n",st_new[i_l].i_num);
         st_tree = st_insert(st_new[i_l].i_num, st_newtree);
     }
-    else if(((i_r - i_l)/ 2) != 0){
+    else if(((i_r - i_l)/ 2) > 0){
         printf("%d\n",st_new[i_mid].i_num);
         st_tree = st_insert(st_new[i_mid].i_num, st_newtree);
         vd_traversal_alg(i_l, i_mid - 1, st_new, st_newtree);
